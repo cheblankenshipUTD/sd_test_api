@@ -8,13 +8,13 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from mangum import Mangum
 
+# Execute the command below to run this API test server
+# $ uvicorn main:sd_api_test --reload
 
-app = FastAPI()
-handler = Mangum(app)
+sd_api_test = FastAPI()
+handler = Mangum(sd_api_test)
 
 
-@app.get("/")
+@sd_api_test.get("/")
 async def root():
     return {"message": "Welcome to the SD API Test Server!"}
-
-
