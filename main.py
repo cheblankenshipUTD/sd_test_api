@@ -8,8 +8,12 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from mangum import Mangum
 
-# Execute the command below to run this API test server
+# Run locally
 # $ uvicorn main:sd_api_test --reload
+
+# Run on ec2 server (python3 = 3.10.x)
+# $ python3 -m uvicorn main:sd_api_test --reload
+
 
 sd_api_test = FastAPI()
 handler = Mangum(sd_api_test)
