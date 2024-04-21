@@ -8,12 +8,20 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from mangum import Mangum
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData, Table, select, Column, Integer, String, Boolean
 from sqlalchemy.engine import URL
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+
+# Run locally
+# $ uvicorn main:app --reload
+
+# Run on ec2 server (python3 = 3.10.x)
+# $ python3 -m uvicorn main:app --reload
+
 
 url = URL.create(
-    drivername="mysql",
+    drivername="mysql+pymysql",
     username=os.getenv("DB_USER"),
     password=os.getenv("DB_PASSWORD"),
     host=os.getenv("DB_HOST"),
@@ -26,18 +34,31 @@ engine = create_engine(url)
 Session = sessionmaker(bind=engine)
 session = Session()
 
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Run locally
-# $ uvicorn main:sd_api_test --reload
-
-# Run on ec2 server (python3 = 3.10.x)
-# $ python3 -m uvicorn main:sd_api_test --reload
+app = FastAPI()
+handler = Mangum(app)
 
 
-sd_api_test = FastAPI()
-handler = Mangum(sd_api_test)
-
-
-@sd_api_test.get("/")
+@app.get("/")
 async def root():
     return {"message": "Welcome to the SD API Test Server!"}
+
+
+@app.get("/v1/members/")
+async def getUsers():
+    db = SessionLocal()
+    print("check")
+    # Define your SQLAlchemy model
+    metadata = MetaData()
+    member = Table('member', metadata, autoload=True, autoload_with=engine)
+    # Execute a SELECT query
+    query = select([member])
+    result = db.execute(query)
+    # Fetch results
+    member_data = result.fetchall()
+    # Close the database session
+    db.close()
+    # Return the query results
+    return {"member": member_data}
+
